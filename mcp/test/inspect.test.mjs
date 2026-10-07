@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { mkdtemp, mkdir, writeFile, utimes, symlink, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { test } from "node:test";
+import { inspectDirectory } from "../inspect.ts";
+
+test("measures files and latest nested activity, skips Git metadata and linked content", async (t) => {
+	const root = await mkdtemp(path.join(os.tmpdir(), "cleanup-inspect-test-"));
+	t.after(() => rm(root, { recursive: true }));
+	const scan = path.join(root, "scan");
+	const outside = path.join(root, "outside");
+	await mkdir(path.join(scan, "nested"), { recursive: true });
+	await mkdir(path.join(scan, ".git"));
+	await mkdir(outside);
+	await writeFile(path.join(scan, "nested", "file"), "12345");
+	await writeFile(path.join(scan, ".git", "objects"), "ignored");
+	await writeFile(path.join(outside, "unique"), "outside-content");
+	await symlink(outside, path.join(scan, "link"), process.platform === "win32" ? "junction" : "dir");
+	const old = new Date("2026-01-01T00:00:00Z");
+	const recent = new Date("2026-01-02T00:00:00Z");
+	await utimes(path.join(scan, "nested", "file"), recent, recent);
+	await utimes(path.join(scan, "nested"), old, old);
+	await utimes(scan, old, old);
+	const result = await inspectDirectory(scan);
+	assert.equal(result.bytes, 5);
+	assert.equal(result.files, 1);
+	assert.equal(result.lastModifiedAt, recent.toISOString());
+	assert.equal(result.skippedLinks.length, 1);
+	assert.ok(result.latestEntry.endsWith("file"));
+	assert.ok(result.freeBytes > 0);
+	await assert.rejects(inspectDirectory(path.join(scan, "link")), /symlink or junction/);
+	await assert.rejects(inspectDirectory(path.join(scan, "nested", "file")), /directory/);
+	await assert.rejects(inspectDirectory(path.join(root, "missing")), /ENOENT/);
+	await assert.rejects(inspectDirectory("relative"), /absolute/);
+});

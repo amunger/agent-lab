@@ -1,8 +1,9 @@
 {
 	"name": "agent-lab",
 	"description": "Experimental, explicit-only agent workflows for trying heavier Copilot orchestration without changing the stable agent-plugin.",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"repository": "https://github.com/amunger/agent-lab",
 	"skills": "skills/",
-	"agents": "agents/"
+	"agents": "agents/",
+	"mcpServers": ".mcp.json"
 }
