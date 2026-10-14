@@ -20,58 +20,15 @@ The first experiment is a small, explicit-only adaptation of [pstack](https://gi
 
 It also includes the `comment-sicko` custom agent used by `/no-comments`.
 
-Every skill has `disable-model-invocation: true`. Invoke a skill explicitly when you want to test it. The disk-cleanup MCP tools are also available to the agent; they are read-only and never remove files.
+Every skill has `disable-model-invocation: true`. Invoke a skill explicitly when you want to test it.
 
 ## Disk cleanup app
 
-Invoke `/disk-cleanup` with the machine/roots to inspect. The agent measures large
-directories, verifies their purpose and preservation evidence, and presents an
-interactive list with checkboxes, size estimates, modification dates, reasons and
-risk warnings. Recommendations are not limited to worktrees: large reproducible
-build artifacts (including those in a Copilot runtime checkout when present),
-caches and dependency trees are first-class candidates.
-
-Worktrees qualify after **more than 7 days** of inactivity when removal is
-recoverable, or **more than 30 days** with an explicit possible-data-loss warning.
-Commit age and stale remote-tracking refs do not establish inactivity or safety.
-All selections start unchecked. Parent/child overlap is rejected to avoid double
-counting and ambiguous removal scope.
-
-**Clean up selected** uses the MCP Apps `ui/message` API to hand a new user prompt
-to the current chat. The host may require pressing Send in the composer. The
-server and app cannot delete anything; the agent rechecks only selected paths
-before acting. Warnings require acknowledgement in the UI, and actual data loss
-still needs separate approval. Worktree removal preserves branches.
-
-The plugin registers its bundled stdio server through [.mcp.json](.mcp.json).
-Requires Node.js 22+ on the plugin host. Bundles under [mcp/dist](mcp/dist) are
-checked in so plugin installation does not require an npm install or network
-access. Enable/trust the `disk-cleanup` server if VS Code prompts, then start a
-new chat after updating the plugin. Remote sessions inspect the MCP server's
-machine, not necessarily the computer displaying the app.
-
-### Develop and preview
-
-```powershell
-npm ci
-npm run build
-npm run check
-npm test
-npm run test:app
-npm run preview
-```
-
-Browser tests use an installed Microsoft Edge, or the executable specified by
-`MCP_APP_BROWSER`. The preview serves only on loopback and displays **illustrative
-data**, including a fictitious Copilot runtime build directory. It uses the real
-bundled MCP server and MCP Apps bridge, but captures the cleanup prompt instead of
-sending it to a real chat or deleting files. Open the printed URL. Stop the server
-when finished. The preview HTML is self-contained and can also be saved/opened
-offline; it still only captures prompts.
-
-When changing app code, rebuild and include the generated bundles with the source.
-Runtime dependency licenses are collected in
-[mcp/dist/THIRD_PARTY_LICENSES.txt](mcp/dist/THIRD_PARTY_LICENSES.txt).
+The cleanup skill and MCP App moved to
+[Agent Plugin](https://github.com/amunger/agent-plugin#disk-cleanup-app) in version
+0.1.45. Agent Lab 0.2.1 no longer registers the cleanup server or skill.
+Update both plugins if installed, then start a new chat and use
+`/agent-plugin:disk-cleanup` or ask for disk cleanup normally.
 
 ## Install
 

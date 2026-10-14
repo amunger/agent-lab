@@ -1,9 +1,0 @@
-{
-	"mcpServers": {
-		"disk-cleanup": {
-			"type": "stdio",
-			"command": "node",
-			"args": ["${PLUGIN_ROOT}/mcp/dist/server.mjs"]
-		}
-	}
-}
